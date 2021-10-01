@@ -14,8 +14,11 @@ namespace MinecraftProxy2
         private NetworkStream clientStream;
         private NetworkStream remoteStream;
 
-        private bool isPing = true;
+        private bool isPing = true; //首次连接 或 客户端尝试ping服务器
         private bool handshaked = false;
+        private bool validated = false; //是否检查过白名单
+
+        List<byte> handshake_buffer;
 
         private string ip;
         private int port;
@@ -100,18 +103,13 @@ namespace MinecraftProxy2
                                         isPing = false;
 
                                         //修改握手包
-                                        List<byte> handshake_buffer = new List<byte>();
+                                        handshake_buffer = new List<byte>(); //把握手包存起来，当白名单检查完成后一起发送
 
                                         handshake_buffer.AddRange(Utils.WriteVarInt(0)); //packet_id
                                         handshake_buffer.AddRange(Utils.WriteVarInt(protocol_version)); //协议版本
                                         handshake_buffer.AddRange(Utils.WriteString(this.ip)); //ip
                                         handshake_buffer.AddRange(Utils.WriteUShort(port)); //port
                                         handshake_buffer.AddRange(Utils.WriteVarInt(2)); //登录
-
-                                        ConnectRemote();
-
-                                        remoteStream.Write(Utils.WriteVarInt(handshake_buffer.Count)); //handshake buffer length
-                                        remoteStream.Write(handshake_buffer.ToArray()); //handshake buffer
                                         continue;
                                     }
                                 }
@@ -134,6 +132,47 @@ namespace MinecraftProxy2
                         }
 
                         remoteStream.Write(buffer);
+                        remoteStream.Write(packet_buffer);
+                    }
+                    else if (!validated) //读取Login Start包，进行白名单验证
+                    {
+                        validated = true;
+
+                        int packet_length;
+                        byte[] buffer;
+                        (packet_length, buffer) = Utils.ReadVarInt(clientStream);
+
+                        byte[] packet_buffer = new byte[packet_length]; //login start packet
+
+                        for (int i = 0; i < packet_length; i++)
+                        {
+                            packet_buffer[i] = (byte)clientStream.ReadByte();
+                        }
+
+                        int pos = 0;
+                        int packet_id;
+                        (packet_id, pos) = Utils.ReadVarInt(packet_buffer, pos);
+
+                        string name; //player name
+                        (name, pos) = Utils.ReadString(packet_buffer, pos);
+
+                        Console.WriteLine($"[+] 用户登录: {name}");
+
+                        if (!Validate(name))
+                        {
+                            SendKick("非白名单用户");
+                            Close();
+                            break;
+                        }
+
+                        ConnectRemote();
+
+                        //handshake packet
+                        remoteStream.Write(Utils.WriteVarInt(handshake_buffer.Count));
+                        remoteStream.Write(handshake_buffer.ToArray());
+
+                        //login start packet
+                        remoteStream.Write(buffer);//packet length
                         remoteStream.Write(packet_buffer);
                     }
                     else
@@ -184,6 +223,26 @@ namespace MinecraftProxy2
 
             clientStream.Write(Utils.WriteVarInt(buffer.Count)); //buffer length
             clientStream.Write(buffer.ToArray()); //buffer
+        }
+
+        private void SendKick(string reason)
+        {
+            Console.WriteLine($"[*] 客户端 { this.client_ip } 断开连接发送成功.");
+            List<byte> buffer = new List<byte>();
+
+            //packet id
+            buffer.AddRange(Utils.WriteVarInt(0));
+            //reason
+            buffer.AddRange(Utils.WriteString($"\"{reason}\""));
+
+            clientStream.Write(Utils.WriteVarInt(buffer.Count)); //buffer length
+            clientStream.Write(buffer.ToArray()); //buffer
+        }
+
+        private bool Validate(string name)
+        {
+            //TODO: 根据用户名验证
+            return true;
         }
 
         private void ConnectRemote()
