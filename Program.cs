@@ -9,7 +9,8 @@ namespace MinecraftProxy2
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Minecraft Proxy v2");
+            Console.WriteLine("Minecraft Proxy v2\n");
+            Console.WriteLine("This is an open source project. URL: https://github.com/SkyAerope/MinecraftProxy");
             Console.WriteLine("Author: duoduo\n");
 
             Console.Write("ip: ");
