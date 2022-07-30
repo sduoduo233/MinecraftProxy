@@ -9,12 +9,13 @@ namespace MinecraftProxy2
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Minecraft Proxy v2");
+            Console.WriteLine("Minecraft Proxy v2\n");
+            Console.WriteLine("This is an open source project. URL: https://github.com/sduoduo233/MinecraftProxy");
             Console.WriteLine("Author: duoduo\n");
 
-            Console.Write("ip: ");
+            Console.Write("remote ip: ");
             string ip = Console.ReadLine();
-            Console.Write("port: ");
+            Console.Write("remote port: ");
             int port = Int32.Parse(Console.ReadLine());
 
             Console.Write("local port: ");
