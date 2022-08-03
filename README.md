@@ -13,7 +13,7 @@ Windows: [Download .NET Core 3.1 Runtime (microsoft.com)](https://dotnet.microso
 Linux:
 
 ```shell
-wget https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh && chmod +x ./dotnet-install.sh && sudo ./dotnet-install.sh -c 3.1
+wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh && chmod +x ./dotnet-install.sh && sudo ./dotnet-install.sh -c 3.1
 ```
 
 ### 2. Download the program and unzip it
