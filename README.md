@@ -1,3 +1,5 @@
+# This project is no longer maintained. Use [this](https://github.com/sduoduo233/go-mcproxy) instead.
+
 # Minecraft Proxy
 ## Features
 
